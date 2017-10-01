@@ -1,0 +1,15 @@
+if [ "$1" = "-i" ] 
+then
+	python ejercicio1.py $2
+	exit 0
+	#Ejecuta asumiendo que hay nombre especificado para la entrada
+fi
+
+if [ "$1" = "-capture" ] 
+then
+	python ejercicio1.py
+	exit 0
+fi
+
+echo "Modo de uso:"
+echo "./Sniffy [-capture] [-i ENTRADA]"
