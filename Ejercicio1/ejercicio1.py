@@ -5,11 +5,11 @@ from sys import argv, exit
 import math
 import matplotlib.pyplot as plt
 from matplotlib import pylab
-
 from scapy .all import *
 
+
 #def monitor_callback(pkt):
-#    print pkt.show()
+#    print(pkt.show()
 
 
 def plot_bars(simbolos,entropia,total, toal_arp):
@@ -57,9 +57,9 @@ PACKET_COUNT    =   10
 if __name__ ==  '__main__':
 
     if len(argv) >= 3:
-        print ("Parametros invalidos")
-        print ("Uso:")
-        print ("sniffer archivo_entrada")
+        print("Parametros invalidos")
+        print("Uso:")
+        print("sniffer archivo_entrada")
         exit()
     elif len(argv) == 2:
         #Leer una captura desde el archivo de entrada
@@ -77,23 +77,43 @@ if __name__ ==  '__main__':
 
     conjunto = set()
 
-    #Calculo de la frecuencia relativa e informacion para cada simbolo
+
     for paquete in pkts:
-        print "-------------\n"
+        dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
+        conjunto.add((dst, paquete.type))
+
+    simbolos = dict.fromkeys(conjunto, 0)
+
+    for paquete in pkts:
+        dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
+        conjunto.add((dst, paquete.type))
+        simbolos[(dst, paquete.type)] += 1
+
+    print("simbolos posibles =")
+    print(conjunto)
+    print("\n")
+    print("simbolos=")
+    print(simbolos)
+    print("\n")
+
+    #Calculo de la frecuencia relativa e informacion para cada simbolo
+    '''
+    for paquete in pkts:
+        print("-------------\n")
 
         if paquete.type == 2054:
-            print paquete[ARP].fields
+            print(paquete[ARP].fields)
         elif paquete.type == 2048:
-            print paquete[IP].fields
+            print(paquete[IP].fields)
             if UDP in paquete:
-                print paquete[UDP].fields
+                print(paquete[UDP].fields)
             if TCP in paquete:
-                print paquete[TCP].fields
+                print(paquete[TCP].fields)
             if ICMP in paquete:
-                print paquete[ICMP].fields
+                print(paquete[ICMP].fields)
         else:
             conjunto.add(paquete.type)
-            print paquete.type
+            print(paquete.type)
 
         if ARP in paquete:
             total_arp += 1
@@ -102,7 +122,8 @@ if __name__ ==  '__main__':
         else:
             s_unicast+=1
         total += 1
-    print conjunto
+    print(conjunto
+
 
 
     exit
@@ -124,3 +145,4 @@ if __name__ ==  '__main__':
     simbolos["broadcast"] = s_broadcastInfo
     simbolos["unicast"] = s_unicastInfo
     plot_bars(simbolos,s_entropia,total, total_arp)
+    '''
