@@ -5,12 +5,12 @@ from sys import argv, exit
 import math
 import matplotlib.pyplot as plt
 from matplotlib import pylab
+import logging
+logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy .all import *
-
 
 #def monitor_callback(pkt):
 #    print(pkt.show()
-
 
 def plot_bars(simbolos,entropia,total, toal_arp):
     
