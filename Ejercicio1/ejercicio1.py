@@ -75,26 +75,54 @@ if __name__ ==  '__main__':
     total = 0
     total_arp = 0
 
-    conjunto = set()
-
-
-    for paquete in pkts:
-        dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-        conjunto.add((dst, paquete.type))
-
-    simbolos = dict.fromkeys(conjunto, 0)
+    simbolos = set()
 
     for paquete in pkts:
         dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-        conjunto.add((dst, paquete.type))
-        simbolos[(dst, paquete.type)] += 1
+        simbolos.add((dst, paquete.type))
+
+    simbolosConCantidades = dict.fromkeys(simbolos, 0)
+    cantidadTotal = 0
+
+    for paquete in pkts:
+        dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
+        simbolos.add((dst, paquete.type))
+        simbolosConCantidades[(dst, paquete.type)] += 1
+        cantidadTotal += 1
 
     print("simbolos posibles =")
-    print(conjunto)
-    print("\n")
-    print("simbolos=")
     print(simbolos)
     print("\n")
+    print("simbolos=")
+    print(simbolosConCantidades)
+    print("\n")
+
+
+    tabla = set()
+    entropia = 0
+    entropiaMax = 0
+
+    for simbolo in simbolos:
+        s_prob = float(simbolosConCantidades[simbolo]) / cantidadTotal
+        s_info = math.log(1/s_prob,2)
+        tabla.add((("Broadcast" if simbolo[0] else "Unicast"), simbolo[1], round(s_prob, 2), round(s_info, 2)))
+        entropia += (s_prob * s_info)
+        s_largo = 1 #falta esto
+        entropiaMax += (s_prob * s_largo)
+
+
+    print("Tabla:")
+    tablaTitulos = ["Tipo destino", "Protocolo", "Probabilidad", "Informacion"]
+    row_format ="{:>15}" * (len(tablaTitulos) + 1)
+    print(row_format.format("", *tablaTitulos))
+    for titulo, row in zip(tablaTitulos, tabla):
+        print(row_format.format(titulo, *row))
+
+    #print(tabla)
+    print("Entropia:")
+    print(entropia)
+    print("Entropia Maxima:")
+    print(entropiaMax)
 
     #Calculo de la frecuencia relativa e informacion para cada simbolo
     '''
@@ -122,7 +150,7 @@ if __name__ ==  '__main__':
         else:
             s_unicast+=1
         total += 1
-    print(conjunto
+    print(conjunto)
 
 
 
