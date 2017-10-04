@@ -14,13 +14,13 @@ from scapy .all import *
 
 def plot_bars(simbolos,entropia,total, toal_arp):
     
-    info_set  = set()
+    info_set = set()
     
     fig, ax = plt.subplots()
     #Dibujo de los graficos
     entrop_line = ax.axvline(entropia, color='blue', linewidth=2,alpha = 0.7)
-    maxEntrop_line = ax.axvline(math.log((len(simbolos)),2), color='red', linewidth=2,alpha = 0.7)
-    bars = ax.barh(range(len(simbolos)), simbolos.values(), align='center', alpha=0.4, color='green')
+    maxEntrop_line = ax.axvline(math.log((len(s1_simbolos)),2), color='red', linewidth=2,alpha = 0.7)
+    bars = ax.barh(range(len(s1_simbolos)), s1_simbolos.values(), align='center', alpha=0.4, color='green')
     bars[1].set_linewidth(2)
 
     plt.yticks(range(len(simbolos)),simbolos.keys())
@@ -30,7 +30,7 @@ def plot_bars(simbolos,entropia,total, toal_arp):
     ax.legend((bars[0], entrop_line, maxEntrop_line), ('simbolos', 'Entropia','Entropia maxima'))
     pylab.xlabel("Informacion")
     pylab.ylabel("Ip Hosts")
-    pylab.title("Informacion simbolos")
+    pylab.title("Informacion ssimbolos")
         # Data to plot
     labels = 'ARP', 'Otros'
     sizes = [total_arp,total]
@@ -51,6 +51,31 @@ def plot_bars(simbolos,entropia,total, toal_arp):
 #Estaria bueno que sea por tiempo
 
 PACKET_COUNT    =   10
+DECIMALES       =   3
+
+def herramienta(simbolos, cantidadPorSimbolo, cantidadTotal):
+    tabla = set()
+    entropia = 0
+    entropiaMax = 0
+    for simbolo in simbolos:
+        s_prob = float(cantidadPorSimbolo[simbolo]) / cantidadTotal
+        s_info = math.log(1 / s_prob, 2)
+        tabla.add((("Broadcast" if simbolo[0] else "Unicast"), simbolo[1], round(s_prob, DECIMALES), round(s_info, DECIMALES)))
+        entropia += (s_prob * s_info)
+        s_largo = cantidadPorSimbolo[simbolo] #Confirmar esto
+        entropiaMax += (s_prob * s_largo)
+    return (tabla, entropia, entropiaMax)
+
+def mostrarTabla(titulos, tabla):
+    row_format ="{:>15}" * len(titulos)
+    print(row_format.format(*titulos))
+    for row in tabla:
+        print(row_format.format(*row))
+
+def criterioS2(paquete, simbolos):
+    if ARP in paquete:
+        #paquete[ARP].show()
+        simbolos.add(paquete)
 
 #*********************************
 
@@ -59,70 +84,65 @@ if __name__ ==  '__main__':
     if len(argv) >= 3:
         print("Parametros invalidos")
         print("Uso:")
-        print("sniffer archivo_entrada")
+        print("ejercicio1.py archivo_entrada")
         exit()
     elif len(argv) == 2:
         #Leer una captura desde el archivo de entrada
         pkts = rdpcap(argv[1])
     else:
         #Capturar paquetes en vivo
-        pkts = sniff(prn = lambda x:x.show(),count = PACKET_COUNT)
+        pkts = sniff(prn = lambda x:x.show(), count = PACKET_COUNT)
         #Escribo los paqutes en el archivo(Sobreescribe!)
-        wrpcap("temp.pcap",pkts)
+        wrpcap("temp.pcap", pkts)
 
-    s_broadcast = 0
-    s_unicast   = 0
-    total = 0
-    total_arp = 0
-
-    simbolos = set()
+    s1_simbolos = set()
+    s2_simbolos = set()
 
     for paquete in pkts:
         dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-        simbolos.add((dst, paquete.type))
+        s1_simbolos.add((dst, paquete.type))
+        criterioS2(paquete, s2_simbolos)
 
-    simbolosConCantidades = dict.fromkeys(simbolos, 0)
+    cantidadPorSimbolo = dict.fromkeys(s1_simbolos, 0)
     cantidadTotal = 0
 
     for paquete in pkts:
         dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-        simbolos.add((dst, paquete.type))
-        simbolosConCantidades[(dst, paquete.type)] += 1
+        cantidadPorSimbolo[(dst, paquete.type)] += 1
         cantidadTotal += 1
 
-    print("simbolos posibles =")
-    print(simbolos)
-    print("\n")
-    print("simbolos=")
-    print(simbolosConCantidades)
-    print("\n")
-
-
-    tabla = set()
-    entropia = 0
-    entropiaMax = 0
-
-    for simbolo in simbolos:
-        s_prob = float(simbolosConCantidades[simbolo]) / cantidadTotal
-        s_info = math.log(1/s_prob,2)
-        tabla.add((("Broadcast" if simbolo[0] else "Unicast"), simbolo[1], round(s_prob, 2), round(s_info, 2)))
-        entropia += (s_prob * s_info)
-        s_largo = 1 #falta esto
-        entropiaMax += (s_prob * s_largo)
-
+    tablaTitulos = ["TIPO DESTINO", "PROTOCOLO", "PROBABILIDAD", "INFORMACION"]
+    (s1_tabla, entropia, entropiaMax) = herramienta(s1_simbolos, cantidadPorSimbolo, cantidadTotal)
 
     print("Tabla:")
-    tablaTitulos = ["Tipo destino", "Protocolo", "Probabilidad", "Informacion"]
-    row_format ="{:>15}" * (len(tablaTitulos) + 1)
-    print(row_format.format("", *tablaTitulos))
-    for titulo, row in zip(tablaTitulos, tabla):
-        print(row_format.format(titulo, *row))
-
-    #print(tabla)
-    print("Entropia:")
+    mostrarTabla(tablaTitulos, s1_tabla)
+    print("\nEntropia:")
     print(entropia)
-    print("Entropia Maxima:")
+    print("\nEntropia Maxima:")
     print(entropiaMax)
+
+
+
+
+
+
+
+    '''
+    print("s1_simbolos posibles =")
+    print(s1_simbolos)
+    print("\n")
+    print("s1_simbolos=")
+    print(cantidadPorSimbolo)
+    print("\n")
+    '''
+
+
+    '''
+    s_broadcast = 0
+    s_unicast   = 0
+    total = 0
+    total_arp = 0
+    '''
 
     #Calculo de la frecuencia relativa e informacion para cada simbolo
     '''
