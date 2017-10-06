@@ -57,14 +57,16 @@ def herramienta(simbolos, cantidadPorSimbolo, cantidadTotal):
     tabla = set()
     entropia = 0
     entropiaMax = 0
+
+    equiprob = float(1) / len(simbolos)
+
     for simbolo in simbolos:
         s_prob = float(cantidadPorSimbolo[simbolo]) / cantidadTotal
         s_info = math.log(1 / s_prob, 2)
         tabla.add((("Broadcast" if simbolo[0] else "Unicast"), simbolo[1], round(s_prob, DECIMALES), round(s_info, DECIMALES)))
         entropia += (s_prob * s_info)
-        s_largo = cantidadPorSimbolo[simbolo] #Confirmar esto
-        entropiaMax += (s_prob * s_largo)
-    return (tabla, entropia, entropiaMax)
+        entropiaMax += (equiprob * s_info)
+    return (tabla, int(round(entropia)), int(round(entropiaMax)))
 
 def mostrarTabla(titulos, tabla):
     row_format ="{:>15}" * len(titulos)
@@ -72,10 +74,40 @@ def mostrarTabla(titulos, tabla):
     for row in tabla:
         print(row_format.format(*row))
 
-def criterioS2(paquete, simbolos):
-    if ARP in paquete:
-        #paquete[ARP].show()
-        simbolos.add(paquete)
+def obtenerSimbolo(paquete):
+    dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
+    return (dst, paquete.type)
+
+def imprimirHerramienta(tabla, entropia, entropiaMax):
+    tablaTitulos = ["TIPO DESTINO", "PROTOCOLO", "PROBABILIDAD", "INFORMACION"]
+    print("Tabla:")
+    mostrarTabla(tablaTitulos, tabla)
+    print("\nEntropia:")
+    print(entropia)
+    print("\nEntropia Maxima:")
+    print(entropiaMax)
+
+def prueba(criterio):
+    simbolos = set()
+
+    for paquete in pkts:
+        if (criterio(paquete)):
+            simbolos.add(obtenerSimbolo(paquete))
+
+    cantidadPorSimbolo = dict.fromkeys(simbolos, 0)
+    cantidadTotal = 0
+
+    for paquete in pkts:
+        if (criterio(paquete)):
+            cantidadPorSimbolo[obtenerSimbolo(paquete)] += 1
+            cantidadTotal += 1
+
+    (tabla, entropia, entropiaMax) = herramienta(simbolos, cantidadPorSimbolo, cantidadTotal)
+
+    imprimirHerramienta(tabla, entropia, entropiaMax)
+
+def criterioS1(paquete):
+    return True
 
 #*********************************
 
@@ -95,34 +127,37 @@ if __name__ ==  '__main__':
         #Escribo los paqutes en el archivo(Sobreescribe!)
         wrpcap("temp.pcap", pkts)
 
+    
     s1_simbolos = set()
-    s2_simbolos = set()
 
-    for paquete in pkts:
-        dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-        s1_simbolos.add((dst, paquete.type))
-        criterioS2(paquete, s2_simbolos)
-
-    cantidadPorSimbolo = dict.fromkeys(s1_simbolos, 0)
+    cantidadPorSimbolo = dict()
     cantidadTotal = 0
 
     for paquete in pkts:
-        dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-        cantidadPorSimbolo[(dst, paquete.type)] += 1
+        simbolo = obtenerSimbolo(paquete)
+        s1_simbolos.add(simbolo)
+        if simbolo in cantidadPorSimbolo:
+            cantidadPorSimbolo[simbolo] += 1
+        else:
+            cantidadPorSimbolo[simbolo] = 1
         cantidadTotal += 1
+        
 
-    tablaTitulos = ["TIPO DESTINO", "PROTOCOLO", "PROBABILIDAD", "INFORMACION"]
-    (s1_tabla, entropia, entropiaMax) = herramienta(s1_simbolos, cantidadPorSimbolo, cantidadTotal)
+    (s1_tabla, s1_entropia, s1_entropiaMax) = herramienta(s1_simbolos, cantidadPorSimbolo, cantidadTotal)
+    imprimirHerramienta(s1_tabla, s1_entropia, s1_entropiaMax)
 
-    print("Tabla:")
-    mostrarTabla(tablaTitulos, s1_tabla)
-    print("\nEntropia:")
-    print(entropia)
-    print("\nEntropia Maxima:")
-    print(entropiaMax)
+    '''s2_simbolos = set()
+    for paquete in pkts:
+        if ARP in paquete:
+            s_prob = float(cantidadPorSimbolo[obtenerSimbolo(paquete)]) / cantidadTotal
+            s_info = math.log(1 / s_prob, 2)
+            if s_info > s1_entropia:
+                s2_simbolos.add(paquete)
 
-
-
+    (s2_tabla, s2_entropia, s2_entropiaMax) = herramienta(s2_simbolos, cantidadPorSimbolo, cantidadTotal)
+    '''
+    #imprimirHerramienta(s2_tabla, s2_entropia, s2_entropiaMax)
+    
 
 
 
