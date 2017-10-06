@@ -12,37 +12,31 @@ from scapy .all import *
 #def monitor_callback(pkt):
 #    print(pkt.show()
 
-def plot_bars(simbolos,entropia,total, toal_arp):
+def plot_bars(simbolos,entropia):
     
-    info_set = set()
-    
+    info_set  = set()
+    filtered_simbolos = {}
+    if (len(simbolos) > 10):
+        for host in simbolos:
+            info_host = simbolos[host]
+            if info_host not in info_set:
+                info_set.add(info_host)
+                filtered_simbolos[host] = simbolos[host]
+    else:
+        filtered_simbolos = simbolos
+
     fig, ax = plt.subplots()
     #Dibujo de los graficos
     entrop_line = ax.axvline(entropia, color='blue', linewidth=2,alpha = 0.7)
-    maxEntrop_line = ax.axvline(math.log((len(s1_simbolos)),2), color='red', linewidth=2,alpha = 0.7)
-    bars = ax.barh(range(len(s1_simbolos)), s1_simbolos.values(), align='center', alpha=0.4, color='green')
-    bars[1].set_linewidth(2)
-
-    plt.yticks(range(len(simbolos)),simbolos.keys())
-
+    maxEntrop_line = ax.axvline(math.log((len(simbolos)),2), color='red', linewidth=2,alpha = 0.7)
+    bars = ax.barh(range(len(filtered_simbolos)), filtered_simbolos.values(), align='center', alpha=0.4, color='green')
+    plt.yticks(range(len(filtered_simbolos)), filtered_simbolos.keys())
 
     #Rotulos y titulos
-    ax.legend((bars[0], entrop_line, maxEntrop_line), ('simbolos', 'Entropia','Entropia maxima'))
+    ax.legend((bars[0], entrop_line, maxEntrop_line), ('Ip\'s', 'Entropia','Entropia maxima'))
     pylab.xlabel("Informacion")
     pylab.ylabel("Ip Hosts")
-    pylab.title("Informacion ssimbolos")
-        # Data to plot
-    labels = 'ARP', 'Otros'
-    sizes = [total_arp,total]
-    colors = ['gold', 'yellowgreen']
-    
- 
-    # Plot
-    fig, ad = plt.subplots()
-    ad.pie(sizes, labels=labels, colors=colors,
-        autopct='%1.1f%%', shadow=True, startangle=140)
- 
-    plt.axis('equal')
+    pylab.title("Informacion simbolos")
 
     #Lo muestra y te da la opcion para guardarlo
     plt.show()    
@@ -133,14 +127,14 @@ def mostrarTabla(titulos, tabla):
         print(row_format.format(*row))
 
 def generarItemDeTablaS1(simbolo, s_prob, s_info, cant):
-    return (("Broadcast" if simbolo[0] else "Unicast"), buscar_protocolo(simbolo[1], True), round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
+    return (simbolo[0], simbolo[1], round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
 def generarItemDeTablaS2(simbolo, s_prob, s_info, cant):
     return (simbolo, round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
 def obtenerSimboloS1(paquete):
     dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-    return (dst, hex(paquete.type))
+    return (("Broadcast" if dst else "Unicast"), buscar_protocolo(hex(paquete.type), True))
 
 def condicionS1(paquete):
     return True
@@ -160,6 +154,7 @@ def imprimirHerramienta(tabla, tablaTitulos, entropia, entropiaMax):
 def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     simbolos = set()
     cantidadPorSimbolo = dict()
+    infoPorSimbolos = dict()
     cantidadTotal = 0
 
     for paquete in pkts:
@@ -181,12 +176,13 @@ def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
         s_info = math.log(float(1) / s_prob, 2)
         tabla.add(fnGenerarItemDeTabla(simbolo, s_prob, s_info, cantidadPorSimbolo[simbolo]))
         entropia += (s_prob * s_info)
+        infoPorSimbolos[simbolo] = s_info
 
     tabla = sorted(tabla, key=lambda x: x[len(next(iter(tabla)))-2])
 
     entropiaMax = math.log(len(simbolos), 2)
     
-    return (simbolos, cantidadPorSimbolo, tabla, cantidadTotal, int(round(entropia)), int(round(entropiaMax)))
+    return (simbolos, cantidadPorSimbolo, tabla, cantidadTotal, int(round(entropia)), int(round(entropiaMax)), infoPorSimbolos)
 
 #*********************************
 
@@ -205,8 +201,8 @@ if __name__ ==  '__main__':
         #Escribo los paqutes en el archivo(Sobreescribe!)
         wrpcap("temp.pcap", pkts)
 
-    (s1_simbolos, s1_cantidadPorSimbolo, s1_tabla, s1_cantTotal, s1_entropia, s1_entropiaMax) = herramienta(obtenerSimboloS1, condicionS1, generarItemDeTablaS1)
-    (s2_simbolos, s2_cantidadPorSimbolo, s2_tabla, s2_cantTotal, s2_entropia, s2_entropiaMax) = herramienta(obtenerSimboloS2, condicionS2, generarItemDeTablaS2)
+    (s1_simbolos, s1_cantidadPorSimbolo, s1_tabla, s1_cantTotal, s1_entropia, s1_entropiaMax, s1_infoPorSimbolos) = herramienta(obtenerSimboloS1, condicionS1, generarItemDeTablaS1)
+    (s2_simbolos, s2_cantidadPorSimbolo, s2_tabla, s2_cantTotal, s2_entropia, s2_entropiaMax, s2_infoPorSimbolos) = herramienta(obtenerSimboloS2, condicionS2, generarItemDeTablaS2)
 
     s1_tablaTitulos = ["TIPO DESTINO", "PROTOCOLO", "PROBABILIDAD", "INFORMACION", "APARICIONES"]
     imprimirHerramienta(s1_tabla, s1_tablaTitulos, s1_entropia, s1_entropiaMax)
@@ -214,32 +210,17 @@ if __name__ ==  '__main__':
 
     cantBroadcast = 0
     for simbolo in s1_simbolos:
-        if simbolo[0]:
+        if simbolo[0] == "Broadcast":
             cantBroadcast += s1_cantidadPorSimbolo[simbolo]
     porcBroadcast = float(cantBroadcast * 100) / s1_cantTotal
-    print("Porc Broadcast: {0}").format(round(porcBroadcast, DECIMALES))
+    print("Porc Broadcast: {0}%").format(round(porcBroadcast, DECIMALES))
 
 
     s2_tablaTitulos = ["DIR IP", "PROBABILIDAD", "INFORMACION", "APARICIONES"]
     imprimirHerramienta(s2_tabla, s2_tablaTitulos, s2_entropia, s2_entropiaMax)
 
-
-    '''
-    print("s1_simbolos posibles =")
-    print(s1_simbolos)
-    print("\n")
-    print("s1_simbolos=")
-    print(cantidadPorSimbolo)
-    print("\n")
-    '''
-
-
-    '''
-    s_broadcast = 0
-    s_unicast   = 0
-    total = 0
-    total_arp = 0
-    '''
+    plot_bars(s1_infoPorSimbolos, s1_entropia)
+    plot_bars(s2_infoPorSimbolos, s2_entropia)
 
     #Calculo de la frecuencia relativa e informacion para cada simbolo
     '''
@@ -289,5 +270,4 @@ if __name__ ==  '__main__':
     simbolos = {}
     simbolos["broadcast"] = s_broadcastInfo
     simbolos["unicast"] = s_unicastInfo
-    plot_bars(simbolos,s_entropia,total, total_arp)
     '''
