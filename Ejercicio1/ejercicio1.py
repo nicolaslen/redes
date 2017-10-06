@@ -47,11 +47,84 @@ def plot_bars(simbolos,entropia,total, toal_arp):
     #Lo muestra y te da la opcion para guardarlo
     plt.show()    
 
-#No encontre una forma mas copada para hacer que termine y despues poder escribir el resultado del sniff
-#Estaria bueno que sea por tiempo
+
+PROTOCOL_MAPPINGS = {
+    '0x800': "Internet Protocol version 4 (IPv4)",
+    '0x806': "Address Resolution Protocol (ARP)",
+    '0x842': "Wake-on-LAN",
+    '0x22f3': "IETF TRILL Protocol",
+    '0x6003': "DECnet Phase IV",
+    '0x8035': "Reverse Address Resolution Protocol",
+    '0x809b': "AppleTalk (Ethertalk)",
+    '0x80f3': "AppleTalk Address Resolution Protocol (AARP)",
+    '0x8100': "VLAN-tagged frame (IEEE 802.1Q) and Shortest Path Bridging IEEE 802.1aq",
+    '0x8137': "IPX",
+    '0x8204': "QNX Qnet",
+    '0x86dd': "Internet Protocol Version 6 (IPv6)",
+    '0x8808': "Ethernet flow control",
+    '0x8819': "CobraNet",
+    '0x8847': "MPLS unicast",
+    '0x8848': "MPLS multicast",
+    '0x8863': "PPPoE Discovery Stage",
+    '0x8864': "PPPoE Session Stage",
+    '0x8870': "Jumbo Frames (proposed)",
+    '0x887b': "HomePlug 1.0 MME",
+    '0x888e': "EAP over LAN (IEEE 802.1X)",
+    '0x8892': "PROFINET Protocol",
+    '0x889a': "HyperSCSI (SCSI over Ethernet)",
+    '0x88a2': "ATA over Ethernet",
+    '0x88a4': "EtherCAT Protocol",
+    '0x88a8': "Provider Bridging (IEEE 802.1ad) & Shortest Path Bridging IEEE 802.1aq",
+    '0x88ab': "Ethernet Powerlink[citation needed]",
+    '0x88cc': "Link Layer Discovery Protocol (LLDP)",
+    '0x88cd': "SERCOS III",
+    '0x88e1': "HomePlug AV MME[citation needed]",
+    '0x88e3': "Media Redundancy Protocol (IEC62439-2)",
+    '0x88e5': "MAC security (IEEE 802.1AE)",
+    '0x88e7': "Provider Backbone Bridges (PBB) (IEEE 802.1ah)",
+    '0x88f7': "Precision Time Protocol (PTP) over Ethernet (IEEE 1588)",
+    '0x8902': "IEEE 802.1ag Connectivity Fault Management (CFM) Protocol / ITU-T Recommendation Y.1731 (OAM)",
+    '0x8906': "Fibre Channel over Ethernet (FCoE)",
+    '0x8914': "FCoE Initialization Protocol",
+    '0x8915': "RDMA over Converged Ethernet (RoCE)",
+    '0x891d': "TTEthernet Protocol Control Frame (TTE)",
+    '0x892f': "High-availability Seamless Redundancy (HSR)",
+    '0x9000': "Ethernet Configuration Testing Protocol",
+}
+
+SHORT_NAME = {
+    '0x800': "IPv4",
+    '0x806': "ARP",
+    '0x842': "Wake-on-LAN",
+    '0x8035': "RARP",
+    '0x809b': "AppleTalk",
+    '0x80f3': "AARP",
+    '0x8137': "IPX",
+    '0x8204': "QNX Qnet",
+    '0x86dd': "IPv6",
+    '0x8808': "Ethernet flow control",
+    '0x8819': "CobraNet",
+    '0x8847': "MPLS unicast",
+    '0x8848': "MPLS multicast",
+    '0x8863': "PPPoE Discovery Stage",
+    '0x8864': "PPPoE Session Stage",
+    '0x888e': "EAP over LAN",
+    '0x8892': "PROFINET Protocol",
+    '0x889a': "HyperSCSI (SCSI over Ethernet)",
+    '0x88a2': "ATA over Ethernet",
+    '0x88a4': "EtherCAT Protocol",
+}
 
 PACKET_COUNT    =   10
 DECIMALES       =   3
+
+def buscar_protocolo(tipo, short=False):
+    try:
+        if short:
+            return SHORT_NAME[tipo]
+        return PROTOCOL_MAPPINGS[tipo]
+    except KeyError:
+        return tipo
 
 def mostrarTabla(titulos, tabla):
     row_format ="{:>15}" * len(titulos)
@@ -60,31 +133,29 @@ def mostrarTabla(titulos, tabla):
         print(row_format.format(*row))
 
 def generarItemDeTablaS1(simbolo, s_prob, s_info, cant):
-    return (("Broadcast" if simbolo[0] else "Unicast"), simbolo[1], round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
+    return (("Broadcast" if simbolo[0] else "Unicast"), buscar_protocolo(simbolo[1], True), round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
 def generarItemDeTablaS2(simbolo, s_prob, s_info, cant):
     return (simbolo, round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
 def obtenerSimboloS1(paquete):
     dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-    return (dst, paquete.type)
+    return (dst, hex(paquete.type))
 
 def condicionS1(paquete):
     return True
 
 def obtenerSimboloS2(paquete):
-    return paquete[ARP].psrc
+    return paquete[ARP].pdst
 
 def condicionS2(paquete):
-    return ARP in paquete
+    return ARP in paquete and paquete.op == 1 and paquete[ARP].psrc != paquete[ARP].pdst
 
 def imprimirHerramienta(tabla, tablaTitulos, entropia, entropiaMax):
     print("\nTabla:")
     mostrarTabla(tablaTitulos, tabla)
-    print("\nEntropia:")
-    print(entropia)
-    print("\nEntropia Maxima:")
-    print(entropiaMax)
+    print("\nEntropia: {0}").format(entropia)
+    print("\nEntropia Maxima: {0}").format(entropiaMax)
 
 def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     simbolos = set()
@@ -110,10 +181,12 @@ def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
         s_info = math.log(float(1) / s_prob, 2)
         tabla.add(fnGenerarItemDeTabla(simbolo, s_prob, s_info, cantidadPorSimbolo[simbolo]))
         entropia += (s_prob * s_info)
-        
+
+    tabla = sorted(tabla, key=lambda x: x[len(next(iter(tabla)))-2])
+
     entropiaMax = math.log(len(simbolos), 2)
     
-    return (tabla, int(round(entropia)), int(round(entropiaMax)))
+    return (simbolos, cantidadPorSimbolo, tabla, cantidadTotal, int(round(entropia)), int(round(entropiaMax)))
 
 #*********************************
 
@@ -121,8 +194,7 @@ if __name__ ==  '__main__':
 
     if len(argv) >= 3:
         print("Parametros invalidos")
-        print("Uso:")
-        print("ejercicio1.py archivo_entrada")
+        print("Uso: ejercicio1.py archivo_entrada")
         exit()
     elif len(argv) == 2:
         #Leer una captura desde el archivo de entrada
@@ -133,11 +205,20 @@ if __name__ ==  '__main__':
         #Escribo los paqutes en el archivo(Sobreescribe!)
         wrpcap("temp.pcap", pkts)
 
-    (s1_tabla, s1_entropia, s1_entropiaMax) = herramienta(obtenerSimboloS1, condicionS1, generarItemDeTablaS1)
-    (s2_tabla, s2_entropia, s2_entropiaMax) = herramienta(obtenerSimboloS2, condicionS2, generarItemDeTablaS2)
+    (s1_simbolos, s1_cantidadPorSimbolo, s1_tabla, s1_cantTotal, s1_entropia, s1_entropiaMax) = herramienta(obtenerSimboloS1, condicionS1, generarItemDeTablaS1)
+    (s2_simbolos, s2_cantidadPorSimbolo, s2_tabla, s2_cantTotal, s2_entropia, s2_entropiaMax) = herramienta(obtenerSimboloS2, condicionS2, generarItemDeTablaS2)
 
     s1_tablaTitulos = ["TIPO DESTINO", "PROTOCOLO", "PROBABILIDAD", "INFORMACION", "APARICIONES"]
     imprimirHerramienta(s1_tabla, s1_tablaTitulos, s1_entropia, s1_entropiaMax)
+
+
+    cantBroadcast = 0
+    for simbolo in s1_simbolos:
+        if simbolo[0]:
+            cantBroadcast += s1_cantidadPorSimbolo[simbolo]
+    porcBroadcast = float(cantBroadcast * 100) / s1_cantTotal
+    print("Porc Broadcast: {0}").format(round(porcBroadcast, DECIMALES))
+
 
     s2_tablaTitulos = ["DIR IP", "PROBABILIDAD", "INFORMACION", "APARICIONES"]
     imprimirHerramienta(s2_tabla, s2_tablaTitulos, s2_entropia, s2_entropiaMax)
