@@ -53,32 +53,17 @@ def plot_bars(simbolos,entropia,total, toal_arp):
 PACKET_COUNT    =   10
 DECIMALES       =   3
 
-def herramienta(simbolos, cantidadPorSimbolo, cantidadTotal, agregarSimboloATabla):
-    tabla = set()
-    entropia = 0
-    entropiaMax = 0
-
-    equiprob = float(1) / len(simbolos)
-
-    for simbolo in simbolos:
-        s_prob = float(cantidadPorSimbolo[simbolo]) / cantidadTotal
-        s_info = math.log(1 / s_prob, 2)
-        agregarSimboloATabla(tabla, simbolo)
-        entropia += (s_prob * s_info)
-        entropiaMax += (equiprob * s_info)
-    return (tabla, int(round(entropia)), int(round(entropiaMax)))
-
 def mostrarTabla(titulos, tabla):
     row_format ="{:>15}" * len(titulos)
     print(row_format.format(*titulos))
     for row in tabla:
         print(row_format.format(*row))
 
-def generarItemDeTablaS1(simbolo, s_prob, s_info):
-    return (("Broadcast" if simbolo[0] else "Unicast"), simbolo[1], round(s_prob, DECIMALES), round(s_info, DECIMALES))
+def generarItemDeTablaS1(simbolo, s_prob, s_info, cant):
+    return (("Broadcast" if simbolo[0] else "Unicast"), simbolo[1], round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
-def generarItemDeTablaS2(simbolo, s_prob, s_info):
-    return (simbolo, round(s_prob, DECIMALES), round(s_info, DECIMALES))
+def generarItemDeTablaS2(simbolo, s_prob, s_info, cant):
+    return (simbolo, round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
 def obtenerSimboloS1(paquete):
     dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
@@ -126,7 +111,7 @@ def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     for simbolo in simbolos:
         s_prob = float(cantidadPorSimbolo[simbolo]) / cantidadTotal
         s_info = math.log(1 / s_prob, 2)
-        tabla.add(fnGenerarItemDeTabla(simbolo, s_prob, s_info))
+        tabla.add(fnGenerarItemDeTabla(simbolo, s_prob, s_info, cantidadPorSimbolo[simbolo]))
         entropia += (s_prob * s_info)
         entropiaMax += (equiprob * s_info)
     
@@ -153,13 +138,11 @@ if __name__ ==  '__main__':
     (s1_tabla, s1_entropia, s1_entropiaMax) = herramienta(obtenerSimboloS1, condicionS1, generarItemDeTablaS1)
     (s2_tabla, s2_entropia, s2_entropiaMax) = herramienta(obtenerSimboloS2, condicionS2, generarItemDeTablaS2)
 
-    s1_tablaTitulos = ["TIPO DESTINO", "PROTOCOLO", "PROBABILIDAD", "INFORMACION"]
+    s1_tablaTitulos = ["TIPO DESTINO", "PROTOCOLO", "PROBABILIDAD", "INFORMACION", "APARICIONES"]
     imprimirHerramienta(s1_tabla, s1_tablaTitulos, s1_entropia, s1_entropiaMax)
 
-    s2_tablaTitulos = ["DIR IP", "PROBABILIDAD", "INFORMACION"]
+    s2_tablaTitulos = ["DIR IP", "PROBABILIDAD", "INFORMACION", "APARICIONES"]
     imprimirHerramienta(s2_tabla, s2_tablaTitulos, s2_entropia, s2_entropiaMax)
-
-
 
 
     '''
