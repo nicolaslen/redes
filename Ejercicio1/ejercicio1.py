@@ -100,20 +100,18 @@ def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
             else:
                 cantidadPorSimbolo[simbolo] = 1
             cantidadTotal += 1
-    #return (simbolos, cantidadPorSimbolo, cantidadTotal)
 
     tabla = set()
     entropia = 0
     entropiaMax = 0
 
-    equiprob = float(1) / len(simbolos)
-
     for simbolo in simbolos:
         s_prob = float(cantidadPorSimbolo[simbolo]) / cantidadTotal
-        s_info = math.log(1 / s_prob, 2)
+        s_info = math.log(float(1) / s_prob, 2)
         tabla.add(fnGenerarItemDeTabla(simbolo, s_prob, s_info, cantidadPorSimbolo[simbolo]))
         entropia += (s_prob * s_info)
-        entropiaMax += (equiprob * s_info)
+        
+    entropiaMax = math.log(len(simbolos), 2)
     
     return (tabla, int(round(entropia)), int(round(entropiaMax)))
 
