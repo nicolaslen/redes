@@ -102,10 +102,10 @@ def PlotBars(simbolos, entropia, entropiaMax):
     plt.yticks(range(len(filtered_simbolos)), filtered_simbolos.keys())
 
     #Rótulos y títulos
-    ax.legend((bars[0], entrop_line, maxEntrop_line), ('S(i)', 'H(S)', 'HMAX(S)'))
+    ax.legend((bars[0], entrop_line, maxEntrop_line), ('I(S(i))', 'H(S)', 'HMAX(S)'))
     pylab.xlabel("INFORMACION")
     pylab.ylabel("S(i)")
-    pylab.title("INFORMACION SIMBOLOS")
+    pylab.title("Cantidad de INFORMACION por SIMBOLO")
 
     #Lo muestra
     plt.show()    
