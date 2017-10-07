@@ -205,8 +205,8 @@ if __name__ ==  '__main__':
     print("\n-- FUENTE S1 --\n")
     PrintResults(tablaS1, headersS1, entropiaS1, entropiaS1Max)
 
-    print("Broadcast: {0}%").format(sum(map(lambda si: aparicionesS1[si] if si[0] == "Broadcast" else 0, S1))*100/cantidadS1)
-    print("Unicast:   {0}%").format(100-sum(map(lambda si: aparicionesS1[si] if si[0] == "Unicast" else 0, S1))*100/cantidadS1)
+    print("Broadcast: {:.3%}").format(float(sum(map(lambda si: aparicionesS1[si] if si[0] == "Broadcast" else 0, S1)))/float(cantidadS1))
+    print("Unicast:   {:.3%}").format(float(sum(map(lambda si: aparicionesS1[si] if si[0] == "Unicast" else 0, S1)))/float(cantidadS1))
     
     #Imprimir la tabla para S1
     headersS2 = ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
@@ -219,6 +219,6 @@ if __name__ ==  '__main__':
         tuplesToString[simbolo[1] + ' (' + simbolo[0] + ')'] = informacionS1[simbolo]
     
     #Gráfico de barras para S1
-    PlotBars(tuplesToString, entropiaS1, entropiaS1Max)
+    PlotBars(tuplesToString, int(math.ceil(entropiaS1)), entropiaS1Max)
     #Gráfico de barras para S2
-    PlotBars(informacionS2, entropiaS2, entropiaS2Max)
+    PlotBars(informacionS2, int(math.ceil(entropiaS2)), entropiaS2Max)
