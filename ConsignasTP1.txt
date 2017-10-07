@@ -1,3 +1,13 @@
+ESQUELETO
+
+-Introducción-
+
+-Métodos, Condiciones y Resultados (de cada experimento)-
+
+Se debe detallar para cada experimento la descripción de la red -tipo, tamaño, modo de acceso, etc.-, las características de la muestra -tamaño, horario, día de la semana, etc.- y la justificación de la elección del modelo de la fuente, entre otras.
+
+-Resultados Globales y Conclusiones-
+
 S1
 
 ¿Considera significativa la cantidad de tráfico broadcast sobre el tráfico total? 
