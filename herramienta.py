@@ -4,40 +4,12 @@
 from sys import argv, exit
 import math
 import matplotlib.pyplot as plt
+
 from matplotlib import pylab
 import logging
+
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy .all import *
-
-def plot_bars(simbolos,entropia):
-    
-    info_set  = set()
-    filtered_simbolos = {}
-    if (len(simbolos) > 10):
-        for host in simbolos:
-            info_host = simbolos[host]
-            if info_host not in info_set:
-                info_set.add(info_host)
-                filtered_simbolos[host] = simbolos[host]
-    else:
-        filtered_simbolos = simbolos
-
-    fig, ax = plt.subplots()
-    #Dibujo de los graficos
-    entrop_line = ax.axvline(entropia, color='blue', linewidth=2,alpha = 0.7)
-    maxEntrop_line = ax.axvline(math.log((len(simbolos)),2), color='red', linewidth=2,alpha = 0.7)
-    bars = ax.barh(range(len(filtered_simbolos)), filtered_simbolos.values(), align='center', alpha=0.4, color='green')
-    plt.yticks(range(len(filtered_simbolos)), filtered_simbolos.keys())
-
-    #Rotulos y titulos
-    ax.legend((bars[0], entrop_line, maxEntrop_line), ('IP\'s', 'H(S)', 'HMAX(S)'))
-    pylab.xlabel("INFORMACION")
-    pylab.ylabel("IP")
-    pylab.title("INFORMACION SIMBOLOS")
-
-    #Lo muestra y te da la opcion para guardarlo
-    plt.show()    
-
 
 PROTOCOL_MAPPINGS = {
     '0x800': "Internet Protocol version 4 (IPv4)",
@@ -108,7 +80,36 @@ SHORT_NAME = {
 
 DECIMALES = 3
 
-def buscarProtocolo(tipo, short=False):
+def PlotBars(simbolos,entropia):
+    
+    info_set  = set()
+    filtered_simbolos = {}
+    if (len(simbolos) > 10):
+        for host in simbolos:
+            info_host = simbolos[host]
+            if info_host not in info_set:
+                info_set.add(info_host)
+                filtered_simbolos[host] = simbolos[host]
+    else:
+        filtered_simbolos = simbolos
+
+    fig, ax = plt.subplots()
+    #Dibujo de los graficos
+    entrop_line = ax.axvline(entropia, color='blue', linewidth=2,alpha = 0.7)
+    maxEntrop_line = ax.axvline(math.log((len(simbolos)),2), color='red', linewidth=2,alpha = 0.7)
+    bars = ax.barh(range(len(filtered_simbolos)), filtered_simbolos.values(), align='center', alpha=0.4, color='green')
+    plt.yticks(range(len(filtered_simbolos)), filtered_simbolos.keys())
+
+    #Rotulos y titulos
+    ax.legend((bars[0], entrop_line, maxEntrop_line), ('IP\'s', 'H(S)', 'HMAX(S)'))
+    pylab.xlabel("INFORMACION")
+    pylab.ylabel("IP")
+    pylab.title("INFORMACION SIMBOLOS")
+
+    #Lo muestra y te da la opcion para guardarlo
+    plt.show()    
+
+def FindProtocol(tipo, short=False):
     try:
         if short:
             return SHORT_NAME[tipo]
@@ -116,34 +117,34 @@ def buscarProtocolo(tipo, short=False):
     except KeyError:
         return tipo
 
-def mostrarTabla(titulos, tabla):
-    row_format ="{:>15}" * len(titulos)
+def PrintTable(titulos, tabla):
+    row_format ="{:>20}" * len(titulos)
     print(row_format.format(*titulos))
     for row in tabla:
         print(row_format.format(*row))
     print("\n")
 
-def generarItemDeTablaS1(simbolo, s_prob, s_info, cant):
+def CreateRowS1(simbolo, s_prob, s_info, cant):
     return (simbolo[0], simbolo[1], round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
-def generarItemDeTablaS2(simbolo, s_prob, s_info, cant):
+def CreateRowS2(simbolo, s_prob, s_info, cant):
     return (simbolo, round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
-def obtenerSimboloS1(paquete):
+def GetSymbolFromS1(paquete):
     dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-    return (("Broadcast" if dst else "Unicast"), buscarProtocolo(hex(paquete.type), True))
+    return (("Broadcast" if dst else "Unicast"), FindProtocol(hex(paquete.type), True))
 
-def condicionS1(paquete):
+def ConditionS1(paquete):
     return True
 
-def obtenerSimboloS2(paquete):
+def GetSymbolFromS2(paquete):
     return paquete[ARP].pdst
 
-def condicionS2(paquete):
+def ConditionS2(paquete):
     return ARP in paquete and paquete.op == 1 and paquete[ARP].psrc != paquete[ARP].pdst
 
-def imprimirHerramienta(tabla, tablaTitulos, entropia, entropiaMax):
-    mostrarTabla(tablaTitulos, tabla)
+def PrintResults(tabla, tablaTitulos, entropia, entropiaMax):
+    PrintTable(tablaTitulos, tabla)
     print("Entropía: {0} ({1:.2f})").format(int(math.ceil(entropia)), entropia)
     print("Entropía Máxima: {0} ({1:.2f})\n").format(int(math.ceil(entropiaMax)), entropiaMax)
 
@@ -175,7 +176,6 @@ def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
         infoPorSimbolos[simbolo] = s_info
 
     tabla = sorted(tabla, key=lambda x: x[len(next(iter(tabla)))-2])
-
     entropiaMax = math.log(len(simbolos), 2)
     
     return (simbolos, cantidadPorSimbolo, tabla, cantidadTotal, entropia, entropiaMax, infoPorSimbolos)
@@ -192,25 +192,26 @@ if __name__ ==  '__main__':
         print("python file.py file.pcap")
         exit()
 
-    (s1_simbolos, s1_cantidadPorSimbolo, s1_tabla, s1_cantTotal, s1_entropia, s1_entropiaMax, s1_infoPorSimbolos) = herramienta(obtenerSimboloS1, condicionS1, generarItemDeTablaS1)
-    (s2_simbolos, s2_cantidadPorSimbolo, s2_tabla, s2_cantTotal, s2_entropia, s2_entropiaMax, s2_infoPorSimbolos) = herramienta(obtenerSimboloS2, condicionS2, generarItemDeTablaS2)
+    #Para los paquetes de la captura, correr la herramienta 
+    (S1, aparicionesS1, tablaS1, cantidadS1, entropiaS1, entropiaS1Max, informacionS1) = herramienta(GetSymbolFromS1, ConditionS1, CreateRowS1)
+    (S2, aparicionesS2, tablaS2, cantidadS2, entropiaS2, entropiaS2Max, informacionS2) = herramienta(GetSymbolFromS2, ConditionS2, CreateRowS2)
 
-    s1_tablaTitulos = ["TIPO", "PROTOCOLO", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
+    headersS1 = ["TIPO", "PROTOCOLO", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
     print("\n-- FUENTE S1 --\n")
-    imprimirHerramienta(s1_tabla, s1_tablaTitulos, s1_entropia, s1_entropiaMax)
+    PrintResults(tablaS1, headersS1, entropiaS1, entropiaS1Max)
 
     cantBroadcast = 0
-    for simbolo in s1_simbolos:
+    for simbolo in S1:
         if simbolo[0] == "Broadcast":
-            cantBroadcast += s1_cantidadPorSimbolo[simbolo]
-    porcBroadcast = float(cantBroadcast * 100) / s1_cantTotal
-    porcUnicast = 100 - float(cantBroadcast * 100) / s1_cantTotal
+            cantBroadcast += aparicionesS1[simbolo]
+    porcBroadcast = float(cantBroadcast * 100) / cantidadS1
+    porcUnicast = 100 - float(cantBroadcast * 100) / cantidadS1
     print("Broadcast: {0} %").format(round(porcBroadcast, DECIMALES))
     print("Unicast: {0} %").format(round(porcUnicast, DECIMALES))
 
-    s2_tablaTitulos = ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
+    tablaS2Titulos = ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
     print("\n-- FUENTE S2 --\n")
-    imprimirHerramienta(s2_tabla, s2_tablaTitulos, s2_entropia, s2_entropiaMax)
+    PrintResults(tablaS2, tablaS2Titulos, entropiaS2, entropiaS2Max)
 
-    plot_bars(s1_infoPorSimbolos, s1_entropia)
-    plot_bars(s2_infoPorSimbolos, s2_entropia)
+    PlotBars(informacionS1, entropiaS1)
+    PlotBars(informacionS2, entropiaS2)
