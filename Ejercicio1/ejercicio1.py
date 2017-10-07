@@ -1,6 +1,6 @@
+#!/usr/bin/env python
+# encoding: utf-8
 
-#*********************************
-#!   / u s r / b i n / env   p y t h o n
 from sys import argv, exit
 import math
 import matplotlib.pyplot as plt
@@ -8,9 +8,6 @@ from matplotlib import pylab
 import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy .all import *
-
-#def monitor_callback(pkt):
-#    print(pkt.show()
 
 def plot_bars(simbolos,entropia):
     
@@ -33,10 +30,10 @@ def plot_bars(simbolos,entropia):
     plt.yticks(range(len(filtered_simbolos)), filtered_simbolos.keys())
 
     #Rotulos y titulos
-    ax.legend((bars[0], entrop_line, maxEntrop_line), ('Ip\'s', 'Entropia','Entropia maxima'))
-    pylab.xlabel("Informacion")
-    pylab.ylabel("Ip Hosts")
-    pylab.title("Informacion simbolos")
+    ax.legend((bars[0], entrop_line, maxEntrop_line), ('IP\'s', 'H(S)', 'HMAX(S)'))
+    pylab.xlabel("INFORMACION")
+    pylab.ylabel("IP")
+    pylab.title("INFORMACION SIMBOLOS")
 
     #Lo muestra y te da la opcion para guardarlo
     plt.show()    
@@ -125,6 +122,7 @@ def mostrarTabla(titulos, tabla):
     print(row_format.format(*titulos))
     for row in tabla:
         print(row_format.format(*row))
+    print("\n")
 
 def generarItemDeTablaS1(simbolo, s_prob, s_info, cant):
     return (simbolo[0], simbolo[1], round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
@@ -146,10 +144,9 @@ def condicionS2(paquete):
     return ARP in paquete and paquete.op == 1 and paquete[ARP].psrc != paquete[ARP].pdst
 
 def imprimirHerramienta(tabla, tablaTitulos, entropia, entropiaMax):
-    print("\nTabla:")
     mostrarTabla(tablaTitulos, tabla)
-    print("\nEntropia: {0}").format(entropia)
-    print("\nEntropia Maxima: {0}").format(entropiaMax)
+    print("Entropía: {0}").format(entropia)
+    print("Entropía Máxima: {0}").format(entropiaMax)
 
 def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     simbolos = set()
@@ -188,86 +185,33 @@ def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
 
 if __name__ ==  '__main__':
 
-    if len(argv) >= 3:
-        print("Parametros invalidos")
-        print("Uso: ejercicio1.py archivo_entrada")
-        exit()
-    elif len(argv) == 2:
-        #Leer una captura desde el archivo de entrada
+    #Leer una captura desde el archivo de entrada
+    if len(argv) == 2:
         pkts = rdpcap(argv[1])
     else:
-        #Capturar paquetes en vivo
-        pkts = sniff(prn = lambda x:x.show(), count = PACKET_COUNT)
-        #Escribo los paqutes en el archivo(Sobreescribe!)
-        wrpcap("temp.pcap", pkts)
+        print("Invalid Parameters")
+        print("python file.py file.pcap")
+        exit()
 
     (s1_simbolos, s1_cantidadPorSimbolo, s1_tabla, s1_cantTotal, s1_entropia, s1_entropiaMax, s1_infoPorSimbolos) = herramienta(obtenerSimboloS1, condicionS1, generarItemDeTablaS1)
     (s2_simbolos, s2_cantidadPorSimbolo, s2_tabla, s2_cantTotal, s2_entropia, s2_entropiaMax, s2_infoPorSimbolos) = herramienta(obtenerSimboloS2, condicionS2, generarItemDeTablaS2)
 
-    s1_tablaTitulos = ["TIPO DESTINO", "PROTOCOLO", "PROBABILIDAD", "INFORMACION", "APARICIONES"]
+    s1_tablaTitulos = ["TIPO", "PROTOCOLO", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
+    print("\n-- FUENTE S1 --\n")
     imprimirHerramienta(s1_tabla, s1_tablaTitulos, s1_entropia, s1_entropiaMax)
-
 
     cantBroadcast = 0
     for simbolo in s1_simbolos:
         if simbolo[0] == "Broadcast":
             cantBroadcast += s1_cantidadPorSimbolo[simbolo]
     porcBroadcast = float(cantBroadcast * 100) / s1_cantTotal
-    print("Porc Broadcast: {0}%").format(round(porcBroadcast, DECIMALES))
+    porcUnicast = 100 - float(cantBroadcast * 100) / s1_cantTotal
+    print("Broadcast: {0} %").format(round(porcBroadcast, DECIMALES))
+    print("Unicast: {0} %").format(round(porcUnicast, DECIMALES))
 
-
-    s2_tablaTitulos = ["DIR IP", "PROBABILIDAD", "INFORMACION", "APARICIONES"]
+    s2_tablaTitulos = ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
+    print("\n-- FUENTE S2 --\n")
     imprimirHerramienta(s2_tabla, s2_tablaTitulos, s2_entropia, s2_entropiaMax)
 
     plot_bars(s1_infoPorSimbolos, s1_entropia)
     plot_bars(s2_infoPorSimbolos, s2_entropia)
-
-    #Calculo de la frecuencia relativa e informacion para cada simbolo
-    '''
-    for paquete in pkts:
-        print("-------------\n")
-
-        if paquete.type == 2054:
-            print(paquete[ARP].fields)
-        elif paquete.type == 2048:
-            print(paquete[IP].fields)
-            if UDP in paquete:
-                print(paquete[UDP].fields)
-            if TCP in paquete:
-                print(paquete[TCP].fields)
-            if ICMP in paquete:
-                print(paquete[ICMP].fields)
-        else:
-            conjunto.add(paquete.type)
-            print(paquete.type)
-
-        if ARP in paquete:
-            total_arp += 1
-        if paquete.dst == "ff:ff:ff:ff:ff:ff":
-            s_broadcast+=1
-        else:
-            s_unicast+=1
-        total += 1
-    print(conjunto)
-
-
-
-    exit
-    #Verifica haber escuchado al menos un paquete broadcast        
-    assert(s_broadcast != 0)
-    assert(s_unicast != 0)
-
-
-    #Calculo de probabilidades, informacion y entropia
-    s_broadcastProba = float(s_broadcast)/total
-    s_unicastProba      = float(s_unicast)/total
-    s_broadcastInfo = math.log(1/s_broadcastProba,2)
-    s_unicastInfo   = math.log(1/s_unicastProba,2)
-    s_entropia = s_broadcastProba*s_broadcastInfo + s_unicastProba*s_unicastInfo
-    print("Paquetes escuchados: %d, de los cuales %d son ARP" %(total,total_arp))
-    print("Entropia: %f, broadcastProba: %f, unicastProba: %f ,Info(broadcast): %f, Info(unicast) : %f" % (s_entropia,s_broadcastProba,s_unicastProba,s_broadcastInfo,s_unicastInfo))    
-
-    simbolos = {}
-    simbolos["broadcast"] = s_broadcastInfo
-    simbolos["unicast"] = s_unicastInfo
-    '''
