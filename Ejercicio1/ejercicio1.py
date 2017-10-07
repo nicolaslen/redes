@@ -106,10 +106,9 @@ SHORT_NAME = {
     '0x88a4': "EtherCAT Protocol",
 }
 
-PACKET_COUNT    =   10
-DECIMALES       =   3
+DECIMALES = 3
 
-def buscar_protocolo(tipo, short=False):
+def buscarProtocolo(tipo, short=False):
     try:
         if short:
             return SHORT_NAME[tipo]
@@ -132,7 +131,7 @@ def generarItemDeTablaS2(simbolo, s_prob, s_info, cant):
 
 def obtenerSimboloS1(paquete):
     dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-    return (("Broadcast" if dst else "Unicast"), buscar_protocolo(hex(paquete.type), True))
+    return (("Broadcast" if dst else "Unicast"), buscarProtocolo(hex(paquete.type), True))
 
 def condicionS1(paquete):
     return True
