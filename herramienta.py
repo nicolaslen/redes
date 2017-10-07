@@ -130,14 +130,17 @@ def CreateRowS1(simbolo, s_prob, s_info, cant):
 def CreateRowS2(simbolo, s_prob, s_info, cant):
     return (simbolo, round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
-def GetSymbolFromS1(paquete):
+def GetSymbolFromFrameS1(paquete):
     dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-    return (("Broadcast" if dst else "Unicast"), FindProtocol(hex(paquete.type), True))
+    try:
+        return (("Broadcast" if dst else "Unicast"), FindProtocol(hex(paquete.type), True))
+    except:
+        return (("Broadcast" if dst else "Unicast"), "No type found")
 
 def ConditionS1(paquete):
     return True
 
-def GetSymbolFromS2(paquete):
+def GetSymbolFromFrameS2(paquete):
     return paquete[ARP].pdst
 
 def ConditionS2(paquete):
@@ -193,8 +196,8 @@ if __name__ ==  '__main__':
         exit()
 
     #Para los paquetes de la captura, correr la herramienta 
-    (S1, aparicionesS1, tablaS1, cantidadS1, entropiaS1, entropiaS1Max, informacionS1) = herramienta(GetSymbolFromS1, ConditionS1, CreateRowS1)
-    (S2, aparicionesS2, tablaS2, cantidadS2, entropiaS2, entropiaS2Max, informacionS2) = herramienta(GetSymbolFromS2, ConditionS2, CreateRowS2)
+    (S1, aparicionesS1, tablaS1, cantidadS1, entropiaS1, entropiaS1Max, informacionS1) = herramienta(GetSymbolFromFrameS1, ConditionS1, CreateRowS1)
+    (S2, aparicionesS2, tablaS2, cantidadS2, entropiaS2, entropiaS2Max, informacionS2) = herramienta(GetSymbolFromFrameS2, ConditionS2, CreateRowS2)
 
     headersS1 = ["TIPO", "PROTOCOLO", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
     print("\n-- FUENTE S1 --\n")
