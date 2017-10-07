@@ -80,7 +80,7 @@ SHORT_NAME = {
 
 DECIMALES = 3
 
-def PlotBars(simbolos,entropia):
+def PlotBars(simbolos, entropia, entropiaMax):
     
     info_set  = set()
     filtered_simbolos = {}
@@ -94,19 +94,20 @@ def PlotBars(simbolos,entropia):
         filtered_simbolos = simbolos
 
     fig, ax = plt.subplots()
-    #Dibujo de los graficos
+
+    #Dibuja
     entrop_line = ax.axvline(entropia, color='blue', linewidth=2,alpha = 0.7)
-    maxEntrop_line = ax.axvline(math.log((len(simbolos)),2), color='red', linewidth=2,alpha = 0.7)
+    maxEntrop_line = ax.axvline(entropiaMax, color='red', linewidth=2,alpha = 0.7)
     bars = ax.barh(range(len(filtered_simbolos)), filtered_simbolos.values(), align='center', alpha=0.4, color='green')
     plt.yticks(range(len(filtered_simbolos)), filtered_simbolos.keys())
 
-    #Rotulos y titulos
-    ax.legend((bars[0], entrop_line, maxEntrop_line), ('IP\'s', 'H(S)', 'HMAX(S)'))
+    #Rótulos y títulos
+    ax.legend((bars[0], entrop_line, maxEntrop_line), ('S(i)', 'H(S)', 'HMAX(S)'))
     pylab.xlabel("INFORMACION")
-    pylab.ylabel("IP")
+    pylab.ylabel("S(i)")
     pylab.title("INFORMACION SIMBOLOS")
 
-    #Lo muestra y te da la opcion para guardarlo
+    #Lo muestra
     plt.show()    
 
 def FindProtocol(tipo, short=False):
@@ -216,5 +217,9 @@ if __name__ ==  '__main__':
     print("\n-- FUENTE S2 --\n")
     PrintResults(tablaS2, tablaS2Titulos, entropiaS2, entropiaS2Max)
 
-    PlotBars(informacionS1, entropiaS1)
-    PlotBars(informacionS2, entropiaS2)
+    tuplesToString = dict()
+    for simbolo in informacionS1:
+        tuplesToString[simbolo[0] + ' | ' + simbolo[1]] = informacionS1[simbolo]
+    
+    PlotBars(tuplesToString, entropiaS1, entropiaS1Max)
+    PlotBars(informacionS2, entropiaS2, entropiaS2Max)
