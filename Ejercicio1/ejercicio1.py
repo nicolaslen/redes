@@ -145,8 +145,8 @@ def condicionS2(paquete):
 
 def imprimirHerramienta(tabla, tablaTitulos, entropia, entropiaMax):
     mostrarTabla(tablaTitulos, tabla)
-    print("Entropía: {0}").format(entropia)
-    print("Entropía Máxima: {0}").format(entropiaMax)
+    print("Entropía: {0} ({1:.2f})").format(int(math.ceil(entropia)), entropia)
+    print("Entropía Máxima: {0} ({1:.2f})\n").format(int(math.ceil(entropiaMax)), entropiaMax)
 
 def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     simbolos = set()
@@ -179,7 +179,7 @@ def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
 
     entropiaMax = math.log(len(simbolos), 2)
     
-    return (simbolos, cantidadPorSimbolo, tabla, cantidadTotal, int(round(entropia)), int(round(entropiaMax)), infoPorSimbolos)
+    return (simbolos, cantidadPorSimbolo, tabla, cantidadTotal, entropia, entropiaMax, infoPorSimbolos)
 
 #*********************************
 
