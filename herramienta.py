@@ -200,26 +200,25 @@ if __name__ ==  '__main__':
     (S1, aparicionesS1, tablaS1, cantidadS1, entropiaS1, entropiaS1Max, informacionS1) = herramienta(GetSymbolFromFrameS1, ConditionS1, CreateRowS1)
     (S2, aparicionesS2, tablaS2, cantidadS2, entropiaS2, entropiaS2Max, informacionS2) = herramienta(GetSymbolFromFrameS2, ConditionS2, CreateRowS2)
 
+    #Imprimir la tabla para S1
     headersS1 = ["TIPO", "PROTOCOLO", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
     print("\n-- FUENTE S1 --\n")
     PrintResults(tablaS1, headersS1, entropiaS1, entropiaS1Max)
 
-    cantBroadcast = 0
-    for simbolo in S1:
-        if simbolo[0] == "Broadcast":
-            cantBroadcast += aparicionesS1[simbolo]
-    porcBroadcast = float(cantBroadcast * 100) / cantidadS1
-    porcUnicast = 100 - float(cantBroadcast * 100) / cantidadS1
-    print("Broadcast: {0} %").format(round(porcBroadcast, DECIMALES))
-    print("Unicast: {0} %").format(round(porcUnicast, DECIMALES))
-
-    tablaS2Titulos = ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
+    print("Broadcast: {0}%").format(sum(map(lambda si: aparicionesS1[si] if si[0] == "Broadcast" else 0, S1))*100/cantidadS1)
+    print("Unicast:   {0}%").format(100-sum(map(lambda si: aparicionesS1[si] if si[0] == "Unicast" else 0, S1))*100/cantidadS1)
+    
+    #Imprimir la tabla para S1
+    headersS2 = ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
     print("\n-- FUENTE S2 --\n")
-    PrintResults(tablaS2, tablaS2Titulos, entropiaS2, entropiaS2Max)
+    PrintResults(tablaS2, headersS2, entropiaS2, entropiaS2Max)
 
+    #Ajusto texto de presentación EJEY S1
     tuplesToString = dict()
     for simbolo in informacionS1:
-        tuplesToString[simbolo[0] + ' | ' + simbolo[1]] = informacionS1[simbolo]
+        tuplesToString[simbolo[1] + ' (' + simbolo[0] + ')'] = informacionS1[simbolo]
     
+    #Gráfico de barras para S1
     PlotBars(tuplesToString, entropiaS1, entropiaS1Max)
+    #Gráfico de barras para S2
     PlotBars(informacionS2, entropiaS2, entropiaS2Max)
