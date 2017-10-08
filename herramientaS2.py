@@ -121,7 +121,6 @@ def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     
     return (simbolos, cantidadPorSimbolo, tabla, cantidadTotal, entropia, entropiaMax, infoPorSimbolos)
 
-
 if __name__ ==  '__main__':
 
     #Leer una captura desde el archivo de entrada

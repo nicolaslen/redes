@@ -2,13 +2,15 @@
 # encoding: utf-8
 
 from sys import argv, exit
+from collections import Counter
+
 import math
 import matplotlib.pyplot as plt
-
 from matplotlib import pylab
-import logging
 
+import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
 from scapy .all import *
 
 PROTOCOL_MAPPINGS = {
@@ -110,7 +112,7 @@ def PlotBars(simbolos, entropia, entropiaMax):
     #Lo muestra
     plt.show()
 
-def PlotCake(sizes, labels, colors):
+def PlotCake(sizes, labels, colors = None):
     # Plot
 	fig, ad = plt.subplots()
 	ad.pie(sizes, labels = labels, colors = colors, autopct = '%1.1f%%', shadow = True, startangle = 140)
@@ -139,7 +141,9 @@ def CreateRow(simbolo, s_prob, s_info, cant):
 def GetSymbolFromFrame(paquete):
     dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
     try:
-        return (("Broadcast" if dst else "Unicast"), FindProtocol(hex(paquete.type), True))
+        protocol = FindProtocol(hex(paquete.type), True)
+        protocolsList.append(protocol)
+        return (("Broadcast" if dst else "Unicast"), protocol)
     except:
         return (("Broadcast" if dst else "Unicast"), "Unrecognized Type")
 
@@ -192,7 +196,9 @@ if __name__ ==  '__main__':
         print("Invalid Parameters")
         print("python file.py file.pcap")
         exit()
-        
+
+    protocolsList = []
+    
     #Para los paquetes de la captura, correr la herramienta 
     (S1, apariciones, tabla, cantidad, entropia, entropiaMax, informacion) = herramienta(GetSymbolFromFrame, Condition, CreateRow)
 
@@ -212,4 +218,7 @@ if __name__ ==  '__main__':
     
     #Gráfico de barras para S1
     PlotBars(tuplesToString, int(math.ceil(entropia)), entropiaMax)
+    #Gráfico de torta para broadcast / unicast
     PlotCake([pctBroadcast, pctUnicast], ['Broadcast', 'Unicast'], ['gold', 'yellowgreen'])
+    #Gráfico de torta para protocolos encontrados
+    PlotCake(Counter(protocolsList).values(), Counter(protocolsList).keys())
