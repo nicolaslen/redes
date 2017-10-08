@@ -143,6 +143,10 @@ if __name__ ==  '__main__':
     #Para los paquetes de la captura, correr la herramienta 
     (S2, aparicionesS2, tablaS2, cantidadS2, entropiaS2, entropiaS2Max, informacionS2) = herramienta(GetSymbolFromFrameS2, ConditionS2, CreateRowS2)
 
+    #Imprimir la tabla para S2
+    headersS2 = ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
+    PrintResults(tablaS2, headersS2, entropiaS2, entropiaS2Max)
+
     #Gráfico de barras para S2
     PlotBars(informacionS2, int(math.ceil(entropiaS2)), entropiaS2Max)
     

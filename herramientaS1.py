@@ -199,17 +199,11 @@ if __name__ ==  '__main__':
 
     #Imprimir la tabla para S1
     headersS1 = ["TIPO", "PROTOCOLO", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
-    print("\n-- FUENTE S1 --\n")
     PrintResults(tablaS1, headersS1, entropiaS1, entropiaS1Max)
 
     print("Broadcast: {:.3%}").format(float(sum(map(lambda si: aparicionesS1[si] if si[0] == "Broadcast" else 0, S1)))/float(cantidadS1))
     print("Unicast:   {:.3%}").format(float(sum(map(lambda si: aparicionesS1[si] if si[0] == "Unicast" else 0, S1)))/float(cantidadS1))
     
-    #Imprimir la tabla para S1
-    headersS2 = ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
-    print("\n-- FUENTE S2 --\n")
-    PrintResults(tablaS2, headersS2, entropiaS2, entropiaS2Max)
-
     #Ajusto texto de presentación EJEY S1
     tuplesToString = dict()
     for simbolo in informacionS1:
