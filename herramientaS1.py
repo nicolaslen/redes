@@ -125,17 +125,17 @@ def PrintTable(titulos, tabla):
         print(row_format.format(*row))
     print("\n")
 
-def CreateRowS1(simbolo, s_prob, s_info, cant):
+def CreateRow(simbolo, s_prob, s_info, cant):
     return (simbolo[0], simbolo[1], round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
-def GetSymbolFromFrameS1(paquete):
+def GetSymbolFromFrame(paquete):
     dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
     try:
         return (("Broadcast" if dst else "Unicast"), FindProtocol(hex(paquete.type), True))
     except:
         return (("Broadcast" if dst else "Unicast"), "No type found")
 
-def ConditionS1(paquete):
+def Condition(paquete):
     return True
 
 def PrintResults(tabla, tablaTitulos, entropia, entropiaMax):
@@ -187,23 +187,19 @@ if __name__ ==  '__main__':
         print("python file.py file.pcap")
         exit()
         
-    #Creamos la lista de nodos y aristas para el grafo de la red
-    nodos = set()
-    aristas = set()
     #Para los paquetes de la captura, correr la herramienta 
-    (S1, aparicionesS1, tablaS1, cantidadS1, entropiaS1, entropiaS1Max, informacionS1) = herramienta(GetSymbolFromFrameS1, ConditionS1, CreateRowS1)
+    (S1, apariciones, tabla, cantidad, entropia, entropiaMax, informacion) = herramienta(GetSymbolFromFrame, Condition, CreateRow)
 
     #Imprimir la tabla para S1
-    headersS1 = ["TIPO", "PROTOCOLO", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
-    PrintResults(tablaS1, headersS1, entropiaS1, entropiaS1Max)
+    PrintResults(tabla, ["TIPO", "PROTOCOLO", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"], entropia, entropiaMax)
 
-    print("Broadcast: {:.3%}").format(float(sum(map(lambda si: aparicionesS1[si] if si[0] == "Broadcast" else 0, S1)))/float(cantidadS1))
-    print("Unicast:   {:.3%}").format(float(sum(map(lambda si: aparicionesS1[si] if si[0] == "Unicast" else 0, S1)))/float(cantidadS1))
+    print("Broadcast: {:.3%}").format(float(sum(map(lambda si: apariciones[si] if si[0] == "Broadcast" else 0, S1)))/float(cantidad))
+    print("Unicast:   {:.3%}").format(float(sum(map(lambda si: apariciones[si] if si[0] == "Unicast" else 0, S1)))/float(cantidad))
     
     #Ajusto texto de presentación EJEY S1
     tuplesToString = dict()
-    for simbolo in informacionS1:
-        tuplesToString[simbolo[1] + ' (' + simbolo[0] + ')'] = informacionS1[simbolo]
+    for simbolo in informacion:
+        tuplesToString[simbolo[1] + ' (' + simbolo[0] + ')'] = informacion[simbolo]
     
     #Gráfico de barras para S1
-    PlotBars(tuplesToString, int(math.ceil(entropiaS1)), entropiaS1Max)
+    PlotBars(tuplesToString, int(math.ceil(entropia)), entropiaMax)

@@ -11,7 +11,6 @@ import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy .all import *
 
-#para grafo de la red
 import graphviz as gv
 import functools
 
@@ -54,13 +53,13 @@ def PrintTable(titulos, tabla):
         print(row_format.format(*row))
     print("\n")
 
-def CreateRowS2(simbolo, s_prob, s_info, cant):
+def CreateRow(simbolo, s_prob, s_info, cant):
     return (simbolo, round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
 
-def GetSymbolFromFrameS2(paquete):
+def GetSymbolFromFrame(paquete):
     return paquete[ARP].pdst
 
-def ConditionS2(paquete):
+def Condition(paquete):
     if ARP in paquete and paquete.op == 1 and paquete[ARP].psrc != paquete[ARP].pdst:
         nodos.add(paquete[ARP].psrc)
         nodos.add(paquete[ARP].pdst)
@@ -74,9 +73,7 @@ def PrintResults(tabla, tablaTitulos, entropia, entropiaMax):
     print("Entropía: {0} ({1:.2f})").format(int(math.ceil(entropia)), entropia)
     print("Entropía Máxima: {0} ({1:.2f})\n").format(int(math.ceil(entropiaMax)), entropiaMax)
 
-#---------------------GRAFO--------------------------
-
-def add_nodes(graph, nodes):
+def AddNodes(graph, nodes):
     for n in nodes:
         if isinstance(n, tuple):
             graph.node(n[0], **n[1])
@@ -84,14 +81,13 @@ def add_nodes(graph, nodes):
             graph.node(n)
     return graph
 
-def add_edges(graph, edges):
+def AddEdges(graph, edges):
     for e in edges:
         if isinstance(e[0], tuple):
             graph.edge(*e[0], **e[1])
         else:
             graph.edge(*e)
     return graph
-#---------------------GRAFO--------------------------
 
 def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     simbolos = set()
@@ -125,7 +121,6 @@ def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     
     return (simbolos, cantidadPorSimbolo, tabla, cantidadTotal, entropia, entropiaMax, infoPorSimbolos)
 
-#*********************************
 
 if __name__ ==  '__main__':
 
@@ -140,17 +135,17 @@ if __name__ ==  '__main__':
     #Creamos la lista de nodos y aristas para el grafo de la red
     nodos = set()
     aristas = set()
+
     #Para los paquetes de la captura, correr la herramienta 
-    (S2, aparicionesS2, tablaS2, cantidadS2, entropiaS2, entropiaS2Max, informacionS2) = herramienta(GetSymbolFromFrameS2, ConditionS2, CreateRowS2)
+    (S2, apariciones, tabla, cantidad, entropia, entropiaMax, informacion) = herramienta(GetSymbolFromFrame, Condition, CreateRow)
 
     #Imprimir la tabla para S2
-    headersS2 = ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
-    PrintResults(tablaS2, headersS2, entropiaS2, entropiaS2Max)
+    PrintResults(tabla, ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"], entropia, entropiaMax)
 
     #Gráfico de barras para S2
-    PlotBars(informacionS2, int(math.ceil(entropiaS2)), entropiaS2Max)
+    PlotBars(informacion, int(math.ceil(entropia)), entropiaMax)
     
     #Grafo de la red
     digraph = functools.partial(gv.Digraph, format='png')
-    g = digraph()
-    add_edges(add_nodes(g, nodos),aristas).render('network')
+    graph = digraph()
+    AddEdges(AddNodes(graph, nodos),aristas).render('network')
