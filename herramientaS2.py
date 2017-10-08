@@ -147,4 +147,4 @@ if __name__ ==  '__main__':
     #Grafo de la red
     digraph = functools.partial(gv.Digraph, format='png')
     graph = digraph()
-    AddEdges(AddNodes(graph, nodos),aristas).render('network')
+    AddEdges(AddNodes(graph, nodos),aristas).render(argv[1] + ".graph")
