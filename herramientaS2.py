@@ -143,7 +143,7 @@ if __name__ ==  '__main__':
     PrintResults(tabla, ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"], entropia, entropiaMax)
 
     #Gráfico de barras para S2
-    PlotBars(informacion, entropia, entropiaMax)
+    PlotBars(informacion, int(math.ceil(entropia)), entropiaMax)
     
     #Grafo de la red
     digraph = functools.partial(gv.Digraph, format='png')
