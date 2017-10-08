@@ -108,8 +108,16 @@ def PlotBars(simbolos, entropia, entropiaMax):
     pylab.title("Cantidad de INFORMACION por SIMBOLO")
 
     #Lo muestra
-    plt.show()    
+    plt.show()
 
+def PlotCake(sizes, labels, colors):
+    # Plot
+	fig, ad = plt.subplots()
+	ad.pie(sizes, labels = labels, colors = colors, autopct = '%1.1f%%', shadow = True, startangle = 140)
+ 
+	#Show the graphic
+	plt.show()	
+    
 def FindProtocol(tipo, short=False):
     try:
         if short:
@@ -140,8 +148,8 @@ def Condition(paquete):
 
 def PrintResults(tabla, tablaTitulos, entropia, entropiaMax):
     PrintTable(tablaTitulos, tabla)
-    print("Entropía: {0} ({1:.2f})").format(int(math.ceil(entropia)), entropia)
-    print("Entropía Máxima: {0} ({1:.2f})\n").format(int(math.ceil(entropiaMax)), entropiaMax)
+    print("Entropía:     {0} ({1:.2f})").format(int(math.ceil(entropia)), entropia)
+    print("Entropía MAX: {0} ({1:.2f})\n").format(int(math.ceil(entropiaMax)), entropiaMax)
 
 def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     simbolos = set()
@@ -191,8 +199,11 @@ if __name__ ==  '__main__':
     #Imprimir la tabla para S1
     PrintResults(tabla, ["TIPO", "PROTOCOLO", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"], entropia, entropiaMax)
 
-    print("Broadcast: {:.3%}").format(float(sum(map(lambda si: apariciones[si] if si[0] == "Broadcast" else 0, S1)))/float(cantidad))
-    print("Unicast:   {:.3%}").format(float(sum(map(lambda si: apariciones[si] if si[0] == "Unicast" else 0, S1)))/float(cantidad))
+    pctBroadcast = float(sum(map(lambda si: apariciones[si] if si[0] == "Broadcast" else 0, S1)))/float(cantidad)
+    pctUnicast = float(sum(map(lambda si: apariciones[si] if si[0] == "Unicast" else 0, S1)))/float(cantidad)
+
+    print("Broadcast: {:.3%}").format(pctBroadcast)
+    print("Unicast:   {:.3%}").format(pctUnicast)
     
     #Ajusto texto de presentación EJEY S1
     tuplesToString = dict()
@@ -201,3 +212,4 @@ if __name__ ==  '__main__':
     
     #Gráfico de barras para S1
     PlotBars(tuplesToString, int(math.ceil(entropia)), entropiaMax)
+    PlotCake([pctBroadcast, pctUnicast], ['Broadcast', 'Unicast'], ['gold', 'yellowgreen'])
