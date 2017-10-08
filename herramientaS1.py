@@ -133,7 +133,7 @@ def GetSymbolFromFrame(paquete):
     try:
         return (("Broadcast" if dst else "Unicast"), FindProtocol(hex(paquete.type), True))
     except:
-        return (("Broadcast" if dst else "Unicast"), "No type found")
+        return (("Broadcast" if dst else "Unicast"), "Unrecognized Type")
 
 def Condition(paquete):
     return True
@@ -174,8 +174,6 @@ def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     entropiaMax = math.log(len(simbolos), 2)
     
     return (simbolos, cantidadPorSimbolo, tabla, cantidadTotal, entropia, entropiaMax, infoPorSimbolos)
-
-#*********************************
 
 if __name__ ==  '__main__':
 
