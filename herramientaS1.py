@@ -200,4 +200,4 @@ if __name__ ==  '__main__':
         tuplesToString[simbolo[1] + ' (' + simbolo[0] + ')'] = informacion[simbolo]
     
     #Gráfico de barras para S1
-    PlotBars(tuplesToString, int(math.ceil(entropia)), entropiaMax)
+    PlotBars(tuplesToString, entropia, entropiaMax)
