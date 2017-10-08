@@ -15,73 +15,6 @@ from scapy .all import *
 import graphviz as gv
 import functools
 
-PROTOCOL_MAPPINGS = {
-    '0x800': "Internet Protocol version 4 (IPv4)",
-    '0x806': "Address Resolution Protocol (ARP)",
-    '0x842': "Wake-on-LAN",
-    '0x22f3': "IETF TRILL Protocol",
-    '0x6003': "DECnet Phase IV",
-    '0x8035': "Reverse Address Resolution Protocol",
-    '0x809b': "AppleTalk (Ethertalk)",
-    '0x80f3': "AppleTalk Address Resolution Protocol (AARP)",
-    '0x8100': "VLAN-tagged frame (IEEE 802.1Q) and Shortest Path Bridging IEEE 802.1aq",
-    '0x8137': "IPX",
-    '0x8204': "QNX Qnet",
-    '0x86dd': "Internet Protocol Version 6 (IPv6)",
-    '0x8808': "Ethernet flow control",
-    '0x8819': "CobraNet",
-    '0x8847': "MPLS unicast",
-    '0x8848': "MPLS multicast",
-    '0x8863': "PPPoE Discovery Stage",
-    '0x8864': "PPPoE Session Stage",
-    '0x8870': "Jumbo Frames (proposed)",
-    '0x887b': "HomePlug 1.0 MME",
-    '0x888e': "EAP over LAN (IEEE 802.1X)",
-    '0x8892': "PROFINET Protocol",
-    '0x889a': "HyperSCSI (SCSI over Ethernet)",
-    '0x88a2': "ATA over Ethernet",
-    '0x88a4': "EtherCAT Protocol",
-    '0x88a8': "Provider Bridging (IEEE 802.1ad) & Shortest Path Bridging IEEE 802.1aq",
-    '0x88ab': "Ethernet Powerlink[citation needed]",
-    '0x88cc': "Link Layer Discovery Protocol (LLDP)",
-    '0x88cd': "SERCOS III",
-    '0x88e1': "HomePlug AV MME[citation needed]",
-    '0x88e3': "Media Redundancy Protocol (IEC62439-2)",
-    '0x88e5': "MAC security (IEEE 802.1AE)",
-    '0x88e7': "Provider Backbone Bridges (PBB) (IEEE 802.1ah)",
-    '0x88f7': "Precision Time Protocol (PTP) over Ethernet (IEEE 1588)",
-    '0x8902': "IEEE 802.1ag Connectivity Fault Management (CFM) Protocol / ITU-T Recommendation Y.1731 (OAM)",
-    '0x8906': "Fibre Channel over Ethernet (FCoE)",
-    '0x8914': "FCoE Initialization Protocol",
-    '0x8915': "RDMA over Converged Ethernet (RoCE)",
-    '0x891d': "TTEthernet Protocol Control Frame (TTE)",
-    '0x892f': "High-availability Seamless Redundancy (HSR)",
-    '0x9000': "Ethernet Configuration Testing Protocol",
-}
-
-SHORT_NAME = {
-    '0x800': "IPv4",
-    '0x806': "ARP",
-    '0x842': "Wake-on-LAN",
-    '0x8035': "RARP",
-    '0x809b': "AppleTalk",
-    '0x80f3': "AARP",
-    '0x8137': "IPX",
-    '0x8204': "QNX Qnet",
-    '0x86dd': "IPv6",
-    '0x8808': "Ethernet flow control",
-    '0x8819': "CobraNet",
-    '0x8847': "MPLS unicast",
-    '0x8848': "MPLS multicast",
-    '0x8863': "PPPoE Discovery Stage",
-    '0x8864': "PPPoE Session Stage",
-    '0x888e': "EAP over LAN",
-    '0x8892': "PROFINET Protocol",
-    '0x889a': "HyperSCSI (SCSI over Ethernet)",
-    '0x88a2': "ATA over Ethernet",
-    '0x88a4': "EtherCAT Protocol",
-}
-
 DECIMALES = 3
 
 def PlotBars(simbolos, entropia, entropiaMax):
@@ -114,14 +47,6 @@ def PlotBars(simbolos, entropia, entropiaMax):
     #Lo muestra
     plt.show()    
 
-def FindProtocol(tipo, short=False):
-    try:
-        if short:
-            return SHORT_NAME[tipo]
-        return PROTOCOL_MAPPINGS[tipo]
-    except KeyError:
-        return tipo
-
 def PrintTable(titulos, tabla):
     row_format ="{:>20}" * len(titulos)
     print(row_format.format(*titulos))
@@ -129,21 +54,8 @@ def PrintTable(titulos, tabla):
         print(row_format.format(*row))
     print("\n")
 
-def CreateRowS1(simbolo, s_prob, s_info, cant):
-    return (simbolo[0], simbolo[1], round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
-
 def CreateRowS2(simbolo, s_prob, s_info, cant):
     return (simbolo, round(s_prob, DECIMALES), round(s_info, DECIMALES), cant)
-
-def GetSymbolFromFrameS1(paquete):
-    dst = paquete.dst == "ff:ff:ff:ff:ff:ff"
-    try:
-        return (("Broadcast" if dst else "Unicast"), FindProtocol(hex(paquete.type), True))
-    except:
-        return (("Broadcast" if dst else "Unicast"), "No type found")
-
-def ConditionS1(paquete):
-    return True
 
 def GetSymbolFromFrameS2(paquete):
     return paquete[ARP].pdst
@@ -229,29 +141,8 @@ if __name__ ==  '__main__':
     nodos = set()
     aristas = set()
     #Para los paquetes de la captura, correr la herramienta 
-    (S1, aparicionesS1, tablaS1, cantidadS1, entropiaS1, entropiaS1Max, informacionS1) = herramienta(GetSymbolFromFrameS1, ConditionS1, CreateRowS1)
     (S2, aparicionesS2, tablaS2, cantidadS2, entropiaS2, entropiaS2Max, informacionS2) = herramienta(GetSymbolFromFrameS2, ConditionS2, CreateRowS2)
 
-    #Imprimir la tabla para S1
-    headersS1 = ["TIPO", "PROTOCOLO", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
-    print("\n-- FUENTE S1 --\n")
-    PrintResults(tablaS1, headersS1, entropiaS1, entropiaS1Max)
-
-    print("Broadcast: {:.3%}").format(float(sum(map(lambda si: aparicionesS1[si] if si[0] == "Broadcast" else 0, S1)))/float(cantidadS1))
-    print("Unicast:   {:.3%}").format(float(sum(map(lambda si: aparicionesS1[si] if si[0] == "Unicast" else 0, S1)))/float(cantidadS1))
-    
-    #Imprimir la tabla para S1
-    headersS2 = ["IP", "PROBABILIDAD", "INFORMACIÓN", "APARICIONES"]
-    print("\n-- FUENTE S2 --\n")
-    PrintResults(tablaS2, headersS2, entropiaS2, entropiaS2Max)
-
-    #Ajusto texto de presentación EJEY S1
-    tuplesToString = dict()
-    for simbolo in informacionS1:
-        tuplesToString[simbolo[1] + ' (' + simbolo[0] + ')'] = informacionS1[simbolo]
-    
-    #Gráfico de barras para S1
-    PlotBars(tuplesToString, int(math.ceil(entropiaS1)), entropiaS1Max)
     #Gráfico de barras para S2
     PlotBars(informacionS2, int(math.ceil(entropiaS2)), entropiaS2Max)
     
