@@ -149,7 +149,13 @@ def GetSymbolFromFrameS2(paquete):
     return paquete[ARP].pdst
 
 def ConditionS2(paquete):
-    return ARP in paquete and paquete.op == 1 and paquete[ARP].psrc != paquete[ARP].pdst
+    if ARP in paquete and paquete.op == 1 and paquete[ARP].psrc != paquete[ARP].pdst:
+        nodos.add(paquete[ARP].psrc)
+        nodos.add(paquete[ARP].pdst)
+        aristas.add((paquete[ARP].psrc,paquete[ARP].pdst))
+        return True
+    else:
+        return False
 
 def PrintResults(tabla, tablaTitulos, entropia, entropiaMax):
     PrintTable(tablaTitulos, tabla)
@@ -250,6 +256,6 @@ if __name__ ==  '__main__':
     PlotBars(informacionS2, int(math.ceil(entropiaS2)), entropiaS2Max)
     
     #Grafo de la red
-    digraph = functools.partial(gv.Digraph, format='svg')
+    digraph = functools.partial(gv.Digraph, format='png')
     g = digraph()
     add_edges(add_nodes(g, nodos),aristas).render('network')
