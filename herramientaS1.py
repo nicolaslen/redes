@@ -11,10 +11,6 @@ import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy .all import *
 
-#para grafo de la red
-import graphviz as gv
-import functools
-
 PROTOCOL_MAPPINGS = {
     '0x800': "Internet Protocol version 4 (IPv4)",
     '0x806': "Address Resolution Protocol (ARP)",
