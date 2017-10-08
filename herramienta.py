@@ -11,6 +11,10 @@ import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy .all import *
 
+#para grafo de la red
+import graphviz as gv
+import functools
+
 PROTOCOL_MAPPINGS = {
     '0x800': "Internet Protocol version 4 (IPv4)",
     '0x806': "Address Resolution Protocol (ARP)",
@@ -152,6 +156,25 @@ def PrintResults(tabla, tablaTitulos, entropia, entropiaMax):
     print("Entropía: {0} ({1:.2f})").format(int(math.ceil(entropia)), entropia)
     print("Entropía Máxima: {0} ({1:.2f})\n").format(int(math.ceil(entropiaMax)), entropiaMax)
 
+#---------------------GRAFO--------------------------
+
+def add_nodes(graph, nodes):
+    for n in nodes:
+        if isinstance(n, tuple):
+            graph.node(n[0], **n[1])
+        else:
+            graph.node(n)
+    return graph
+
+def add_edges(graph, edges):
+    for e in edges:
+        if isinstance(e[0], tuple):
+            graph.edge(*e[0], **e[1])
+        else:
+            graph.edge(*e)
+    return graph
+#---------------------GRAFO--------------------------
+
 def herramienta(fnObtenerSimbolo, fnCondicion, fnGenerarItemDeTabla):
     simbolos = set()
     cantidadPorSimbolo = dict()
@@ -195,7 +218,10 @@ if __name__ ==  '__main__':
         print("Invalid Parameters")
         print("python file.py file.pcap")
         exit()
-
+        
+    #Creamos la lista de nodos y aristas para el grafo de la red
+    nodos = set()
+    aristas = set()
     #Para los paquetes de la captura, correr la herramienta 
     (S1, aparicionesS1, tablaS1, cantidadS1, entropiaS1, entropiaS1Max, informacionS1) = herramienta(GetSymbolFromFrameS1, ConditionS1, CreateRowS1)
     (S2, aparicionesS2, tablaS2, cantidadS2, entropiaS2, entropiaS2Max, informacionS2) = herramienta(GetSymbolFromFrameS2, ConditionS2, CreateRowS2)
@@ -222,3 +248,8 @@ if __name__ ==  '__main__':
     PlotBars(tuplesToString, int(math.ceil(entropiaS1)), entropiaS1Max)
     #Gráfico de barras para S2
     PlotBars(informacionS2, int(math.ceil(entropiaS2)), entropiaS2Max)
+    
+    #Grafo de la red
+    digraph = functools.partial(gv.Digraph, format='svg')
+    g = digraph()
+    add_edges(add_nodes(g, nodos),aristas).render('network')
