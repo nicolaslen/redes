@@ -103,7 +103,7 @@ def PlotBars(simbolos, entropia, entropiaMax):
     entrop_line = ax.axvline(entropia, color='blue', linewidth=2,alpha = 0.7)
     maxEntrop_line = ax.axvline(entropiaMax, color='red', linewidth=2,alpha = 0.7)
     bars = ax.barh(range(len(filtered_simbolos)), filtered_simbolos.values(), align='center', alpha=0.4, color='green')
-    plt.yticks(range(len(filtered_simbolos)), filtered_simbolos.keys())
+    plt.yticks(range(len(filtered_simbolos)), filtered_simbolos.keys(), fontsize=7, rotation=45)
 
     #Rótulos y títulos
     ax.legend((bars[0], entrop_line, maxEntrop_line), ('I(S(i))', 'H(S)', 'HMAX(S)'))
