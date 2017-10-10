@@ -1,0 +1,5 @@
+Para correr la herramienta y obtener la fuente S1:
+python2 herramientaS1 [DIR PCAP]
+
+Para correr la herramienta y obtener la fuente S2:
+python2 herramientaS2 [DIR PCAP]
